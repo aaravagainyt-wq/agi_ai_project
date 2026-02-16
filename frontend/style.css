@@ -1,111 +1,41 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f9;
+    font-family: Arial;
+    background: #f4f4f4;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+    padding: 20px;
 }
 
 .chat-container {
-    width: 100%;
-    max-width: 450px;
-    height: 90vh;
+    width: 400px;
     background: white;
+    padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-header {
-    background: #4a90e2;
-    color: white;
-    padding: 15px;
-    text-align: center;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 1.2rem;
 }
 
 .chat-box {
-    flex: 1;
-    padding: 20px;
+    height: 350px;
     overflow-y: auto;
     background: #fafafa;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.message {
-    padding: 10px 15px;
-    border-radius: 20px;
-    max-width: 80%;
-    word-wrap: break-word;
-    font-size: 0.95rem;
-}
-
-.bot-message {
-    background: #e0e0e0;
-    color: #333;
-    align-self: flex-start;
-    border-bottom-left-radius: 2px;
-}
-
-.user-message {
-    background: #4a90e2;
-    color: white;
-    align-self: flex-end;
-    border-bottom-right-radius: 2px;
-}
-
-.error {
-    background: #ffdddd;
-    color: #a00;
-}
-
-.input-area, .teach-area {
-    padding: 15px;
-    border-top: 1px solid #ddd;
-    display: flex;
-    gap: 10px;
-    background: white;
-}
-
-input {
-    flex: 1;
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    outline: none;
+    margin-bottom: 10px;
 }
 
-button {
-    padding: 10px 20px;
+.user {
     background: #4a90e2;
     color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 8px;
+    text-align: right;
 }
 
-button:hover {
-    background: #357abd;
-}
-
-.teach-area {
-    flex-direction: column;
-    background: #fff8e1;
-}
-
-.teach-area p {
-    margin: 0 0 5px;
+.bot {
+    background: #ddd;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 8px;
+}    margin: 0 0 5px;
     font-size: 0.9rem;
     color: #666;
 }
