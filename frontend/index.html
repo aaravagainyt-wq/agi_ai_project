@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Learning AI Chatbot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="chat-container">
+        <header>
+            <h1>🤖 Self-Learning AI</h1>
+        </header>
+        
+        <div id="chat-box" class="chat-box">
+            <div class="message bot-message">Hello! I am ready to chat. If I don't know something, please teach me!</div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Type your message..." onkeypress="handleEnter(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div id="teach-area" class="teach-area hidden">
+            <p>I don't know that yet. What should I have said?</p>
+            <input type="text" id="teach-input" placeholder="Type the correct answer...">
+            <button onclick="teachAI()">Teach</button>
+            <button onclick="cancelTeach()" class="cancel-btn">Skip</button>
+        </div>
+    </div>
+
+    <script>
+        // CHANGE THIS URL TO YOUR RENDER BACKEND URL AFTER DEPLOYMENT
+        // Example: const BACKEND_URL = "https://your-project-name.onrender.com";
+        const BACKEND_URL = "http://127.0.0.1:8000"; 
+
+        let lastQuestion = "";
+
+        async function sendMessage() {
+            const inputField = document.getElementById("user-input");
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            // Display User Message
+            addMessage(message, "user-message");
+            inputField.value = "";
+            lastQuestion = message;
+
+            // Hide teach area if it was open from previous turn
+            document.getElementById("teach-area").classList.add("hidden");
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_input: message })
+                });
+
+                const data = await response.json();
+                
+                addMessage(data.answer, "bot-message");
+
+                // If AI didn't find the answer, show the teach interface
+                if (data.found === false) {
+                    document.getElementById("teach-area").classList.remove("hidden");
+                }
+
+            } catch (error) {
+                addMessage("Error connecting to server.", "bot-message error");
+                console.error(error);
+            }
+        }
+
+        async function teachAI() {
+            const teachInput = document.getElementById("teach-input");
+            const correctAnswer = teachInput.value.trim();
+            
+            if (!correctAnswer) return;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/teach`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        user_input: lastQuestion, 
+                        correct_answer: correctAnswer 
+                    })
+                });
+
+                const data = await response.json();
+                addMessage("Thanks! I've learned that now.", "bot-message");
+                
+                // Reset UI
+                teachInput.value = "";
+                document.getElementById("teach-area").classList.add("hidden");
+
+            } catch (error) {
+                addMessage("Failed to save knowledge.", "bot-message error");
+            }
+        }
+
+        function cancelTeach() {
+            document.getElementById("teach-area").classList.add("hidden");
+            document.getElementById("teach-input").value = "";
+        }
+
+        function addMessage(text, className) {
+            const chatBox = document.getElementById("chat-box");
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message", className);
+            msgDiv.innerText = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll to bottom
+        }
+
+        function handleEnter(event) {
+            if (event.key === "Enter") sendMessage();
+        }
+    </script>
+</body>
+</html>
+
