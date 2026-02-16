@@ -1,36 +1,62 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-
-from database import init_db
-from ai_logic import respond, learn
+import sqlite3
+import requests
 
 app = FastAPI()
 
-# Initialize database
-init_db()
+# ---------- Database ----------
+conn = sqlite3.connect("memory.db", check_same_thread=False)
+c = conn.cursor()
+c.execute("""CREATE TABLE IF NOT EXISTS memory (
+    question TEXT PRIMARY KEY,
+    answer TEXT
+)""")
+conn.commit()
 
-# Allow frontend access
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ---------- Bad words ----------
+BAD_WORDS = ["fuck","shit","bitch","asshole","dick","pussy","porn","sex","motherfucker"]
 
-class ChatRequest(BaseModel):
-    user_input: str
-    teach_answer: str | None = None   # optional auto-learning
+# ---------- Models ----------
+class Chat(BaseModel):
+    message: str
 
-@app.get("/")
-def root():
-    return {"message": "AI Chatbot Backend is Running!"}
+last_unknown = None
 
+# ---------- Google Search ----------
+def google_search(query):
+    try:
+        url = f"https://api.duckduckgo.com/?q={query}&format=json"
+        r = requests.get(url).json()
+        return r.get("AbstractText")
+    except:
+        return None
+
+# ---------- Chat Route ----------
 @app.post("/chat")
-def chat(request: ChatRequest):
-    # AUTO LEARN: if user teaches during chat
-    if request.teach_answer:
-        learn(request.user_input, request.teach_answer)
-        return {"answer": "Thanks — I learned that 🙂", "found": True}
+def chat(data: Chat):
+    global last_unknown
+    msg = data.message.lower().strip()
 
-    return respond(request.user_input)
+    for bad in BAD_WORDS:
+        if bad in msg:
+            return {"reply":"I do not learn bad words."}
+
+    c.execute("SELECT answer FROM memory WHERE question=?", (msg,))
+    row = c.fetchone()
+
+    if row:
+        return {"reply":row[0]}
+
+    if last_unknown:
+        c.execute("INSERT OR REPLACE INTO memory VALUES (?,?)", (last_unknown, msg))
+        conn.commit()
+        last_unknown = None
+        return {"reply":"Got it! I have learned this forever."}
+
+    google = google_search(msg)
+    if google:
+        return {"reply":google}
+
+    last_unknown = msg
+    return {"reply":"I am a new AI! I do not know what to say to that! Please tell me what should I respond with!"}
